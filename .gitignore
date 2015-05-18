@@ -30,3 +30,8 @@ build/Release
 node_modules
 
 
+.cachebust
+.editorconfig
+lonely-library.iml
+lonely-library.ipr
+lonely-library.iws
