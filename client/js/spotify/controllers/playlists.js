@@ -5,6 +5,8 @@
 'use strict';
 
 exports = module.exports = function (ngModule) {
-  ngModule.controller('HomeCtrl', function () {
+  ngModule.controller('PlaylistsCtrl', function ($scope, playlists) {
+    $scope.playlists = playlists;
+
   });
 };

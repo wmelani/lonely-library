@@ -19,6 +19,6 @@ require('./auth');
 require('./layout');
 require('./main');
 require('./shared');
-
+require('./spotify');
 // Register app.
 require('./app');

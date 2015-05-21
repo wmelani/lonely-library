@@ -44,7 +44,20 @@ _.defaults(app.config, {
 app.l = app.lib = ultimate.require(app.dir + '/lib');
 app.m = app.models = ultimate.require(app.dir + '/models');
 app.v = app.views = ultimate.fs.globSync(app.dir + '/views/**/*.html');
+
+var SpotifyWebApi = require('spotify-web-api-node');
+var spotifyApi = new SpotifyWebApi({
+  clientId : app.config.api.spotify.key,
+  clientSecret : app.config.api.spotify.secret,
+  redirectUri :  app.config.api.spotify.redirectUri
+});
+
+app.services = {
+  spotifyApi : spotifyApi
+};
+
 app.c = app.controllers = ultimate.require(app.dir + '/controllers');
+
 
 
 
@@ -65,12 +78,8 @@ app.attachMiddlewares = function () {
 
   // Passport strategies
   ultimate.server.middleware.passport.local.attach(app);
-  ultimate.server.middleware.passport.spotify = app.s = app.spotify =
-    require(app.dir + '/middleware/spotify.js')(ultimate.lib.passport);
+  ultimate.server.middleware.passport.spotify = require(app.dir + '/middleware/spotify.js')(ultimate.lib.passport);
   ultimate.server.middleware.passport.spotify.attach(app);
-
-
-
 
   // Hide Powered-by header
   ultimate.server.middleware.hidePoweredByHeader.attach(app);

@@ -4,8 +4,6 @@
 
 'use strict';
 
-var util = require('util');
-
 var _ = require('lodash'),
     bcrypt = require('bcryptjs'),
     ultimate = require('ultimate');
@@ -77,10 +75,6 @@ schema.restify = {
 // Indexes
 schema.path('email').index({ unique: true });
 schema.path('accessToken').index({ unique: true });
-schema.path('auth.local.username').index({ unique: true, sparse: true });
-schema.path('auth.facebook.id').index({ unique: true, sparse: true });
-schema.path('auth.google.id').index({ unique: true, sparse: true });
-schema.path('auth.twitter.id').index({ unique: true, sparse: true });
 schema.path('auth.spotify.id').index({unique: true, sparse: true});
 
 // Virtuals
@@ -132,12 +126,6 @@ schema.pre('save', function (next) {
   });
 });
 
-// Password verification
-schema.methods.comparePassword = function (candidatePassword, cb) {
-  var user = this;
-  bcrypt.compare(candidatePassword, user.auth.local.password, cb);
-};
-
 // Safe JSON (internal data removed)
 schema.methods.getSafeJSON = function () {
   var user = this.toJSON();
@@ -147,102 +135,13 @@ schema.methods.getSafeJSON = function () {
   delete user.__v;
   delete user.accessToken;
 
-  if (user.auth.local) {
-    delete user.auth.local.password;
-  }
-  if (user.auth.facebook) {
-    delete user.auth.facebook.token;
-  }
-  if (user.auth.google) {
-    delete user.auth.google.token;
-  }
-  if (user.auth.twitter) {
-    delete user.auth.twitter.token;
+  if (user.auth.spotify) {
+    delete user.auth.spotify.token;
   }
 
   return user;
 };
 
-/**
- * Local auth
- */
-schema.statics.findOrCreateLocal = function (profile, cb) {
-  var data = {
-    email: profile.username,
-    name: {
-      first: profile.firstName,
-      last: profile.lastName
-    },
-    'auth.local': {
-      username: profile.username,
-      password: profile.password
-    }
-  };
-  app.models.User.findOne({
-    email: data.email
-  }, function (err, user) {
-    if (err) { return cb(err); }
-    if (user) {
-      if (_.isEmpty(user.get('auth.local'))) {
-        user.auth.local.username = profile.username;
-        user.auth.local.password = profile.password;
-        user.save(cb);
-      } else {
-        user.comparePassword(profile.password, function (err, matched) {
-          if (err) { return cb(err); }
-          if (matched) {
-            // Update existing account.
-            user.name = data.name;
-            user.save(cb);
-          } else {
-            // Account created by someone else or using non-local.
-            return cb(new Error('Account already exists.'));
-          }
-        });
-      }
-    } else {
-      // Create new account.
-      app.models.User.create(data, cb);
-    }
-  });
-};
-
-/**
- * Facebook auth
- */
-schema.statics.findOrCreateFacebook = function (accessToken, refreshToken, profile, cb) {
-  // console.log(profile._json);
-  var data = {
-    email: profile._json.email,
-    name: {
-      /* jshint camelcase: false */
-      first: profile._json.first_name,
-      last: profile._json.last_name
-      /* jshint camelcase: true */
-    },
-    'auth.facebook': {
-      id: profile.id,
-      token: accessToken,
-      profile: profile._json
-    }
-  };
-  app.models.User.findOneAndUpdate({
-    email: data.email
-  }, _.omit(data, ['email', 'name']), function (err, user) {
-    if (err) { return cb(err); }
-    if (user) {
-      // Updated existing account.
-      return cb(null, user);
-    } else {
-      // Create new account.
-      app.models.User.create(data, cb);
-    }
-  });
-};
-
-/**
- * Facebook auth
- */
 schema.statics.findOrCreateSpotify = function (accessToken, refreshToken, profile, cb) {
   console.log(profile._json);
   var data = {
@@ -261,77 +160,6 @@ schema.statics.findOrCreateSpotify = function (accessToken, refreshToken, profil
   };
   app.models.User.findOneAndUpdate({
     email: data.email
-  }, _.omit(data, ['email', 'name']), function (err, user) {
-    if (err) { return cb(err); }
-    if (user) {
-      // Updated existing account.
-      return cb(null, user);
-    } else {
-      // Create new account.
-      app.models.User.create(data, cb);
-    }
-  });
-};
-
-/**
- * Google auth
- */
-schema.statics.findOrCreateGoogle = function (accessToken, refreshToken, profile, cb) {
-  // console.log(profile._json);
-  var data = {
-    email: profile._json.email,
-    name: {
-      /* jshint camelcase: false */
-      first: profile._json.given_name,
-      last: profile._json.family_name
-      /* jshint camelcase: true */
-    },
-    'auth.google': {
-      id: profile.id,
-      token: accessToken,
-      profile: profile._json
-    }
-  };
-  app.models.User.findOneAndUpdate({
-    email: data.email
-  }, _.omit(data, ['email', 'name']), function (err, user) {
-    if (err) { return cb(err); }
-    if (user) {
-      // Updated existing account.
-      return cb(null, user);
-    } else {
-      // Create new account.
-      app.models.User.create(data, cb);
-    }
-  });
-};
-
-/**
- * Twitter auth
- *
- * Twitter API doesn't provide e-mail, therefore
- * a fake e-mail address is generated in order to
- * pass field requirement validation.
- * E-mail may be updated by other auth strategies.
- */
-schema.statics.findOrCreateTwitter = function (token, tokenSecret, profile, cb) {
-  // console.log(profile._json);
-  var data = {
-    email: util.format('%s@%s.twitter.id',
-                       ultimate.util.uuid({ dash: false }),
-                       profile.id),
-    name: {
-      first: profile._json.name.split(' ').slice(0, -1).join(' '),
-      last: profile._json.name.split(' ').slice(-1).join(' ')
-    },
-    'auth.twitter': {
-      id: profile.id,
-      token: token,
-      profile: profile._json
-    }
-  };
-  app.models.User.findOneAndUpdate({
-    'auth.twitter.id': profile.id
   }, _.omit(data, ['email', 'name']), function (err, user) {
     if (err) { return cb(err); }
     if (user) {

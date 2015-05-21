@@ -22,11 +22,6 @@ ngModule.config(function ($stateProvider) {
           controller: 'HomeCtrl',
           template: rhtml('./templates/home.html')
         }
-      },
-      resolve: {
-        features: ['Restangular', function (Restangular) {
-          return Restangular.all('features').getList();
-        }]
       }
     });
 });
