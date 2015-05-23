@@ -37,3 +37,5 @@ lonely-library.ipr
 lonely-library.iws
 
 client-built
+.tmp/
+.gradle/
