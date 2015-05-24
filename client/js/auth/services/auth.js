@@ -137,36 +137,6 @@ function hasRole(role) {
 function isAuthenticated() {
   return !_.isEmpty(_user);
 }
-
-function login(formData, redirect) {
-  return _o.Restangular.all('login').post(formData).then(
-    function (result) {
-      _setUser(result);
-
-      var data = _parseStateData(_o.$stateParams);
-      if (!_.isEmpty(data)) {
-        _o.$state.go(data.state, data.stateParams);
-      } else if (!!redirect) {
-        _o.$state.go('app.account.summary');
-      }
-    }
-  );
-}
-
-function loginFacebook() {
-  var qs = querystring.stringify(_o.$stateParams);
-  global.location.href = '/auth/facebook' + (qs ? '?' + qs : '');
-}
-
-function loginGoogle() {
-  var qs = querystring.stringify(_o.$stateParams);
-  global.location.href = '/auth/google' + (qs ? '?' + qs : '');
-}
-
-function loginTwitter() {
-  var qs = querystring.stringify(_o.$stateParams);
-  global.location.href = '/auth/twitter' + (qs ? '?' + qs : '');
-}
 function loginSpotify() {
   var qs = querystring.stringify(_o.$stateParams);
   global.location.href = '/auth/spotify' + (qs ? '?' + qs : '');
@@ -186,15 +156,6 @@ function logout() {
     }
   );
 }
-
-function register(formData) {
-  return _o.Restangular.all('register').post(formData).then(
-    function () {
-      return login(formData, true);
-    }
-  );
-}
-
 // Public API
 exports = module.exports = function (ngModule) {
   ngModule.provider('auth', function () {
@@ -214,12 +175,7 @@ exports = module.exports = function (ngModule) {
         getUser: getUser,
         hasRole: hasRole,
         isAuthenticated: isAuthenticated,
-        login: login,
-        loginFacebook: loginFacebook,
-        loginGoogle: loginGoogle,
-        loginTwitter: loginTwitter,
         logout: logout,
-        register: register,
         loginSpotify : loginSpotify
       };
     }];

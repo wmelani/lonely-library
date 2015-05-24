@@ -53,9 +53,6 @@ exports = module.exports = function (ngModule) {
         username: true
       },
       formData: {},
-      loginFacebook: auth.loginFacebook,
-      loginGoogle: auth.loginGoogle,
-      loginTwitter: auth.loginTwitter,
       loginSpotify : auth.loginSpotify,
       register: register,
       showError: false
