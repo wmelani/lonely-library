@@ -5,7 +5,6 @@
 'use strict';
 
 var _ = require('lodash'),
-    bcrypt = require('bcryptjs'),
     ultimate = require('ultimate');
 
 var mongoose = ultimate.lib.mongoose,
@@ -23,25 +22,6 @@ var schema = new mongoose.Schema({
   },
   accessToken: { type: String },
   auth: {
-    local: {
-      username: { type: type.Email },
-      password: { type: String }
-    },
-    facebook: {
-      id: { type: String },
-      token: { type: String },
-      profile: { type: type.Mixed }
-    },
-    google: {
-      id: { type: String },
-      token: { type: String },
-      profile: { type: type.Mixed }
-    },
-    twitter: {
-      id: { type: String },
-      token: { type: String },
-      profile: { type: type.Mixed }
-    },
     spotify: {
       id : { type: String},
       token: { type: String},
@@ -81,37 +61,9 @@ schema.path('auth.spotify.id').index({unique: true, sparse: true});
 schema.virtual('safeJSON').get(function () {
   return JSON.stringify(this.getSafeJSON());
 });
-schema.virtual('name.full').get(function () {
-  return this.name.first + ' ' + this.name.last;
-});
-schema.virtual('name.full').set(function (name) {
-  this.name.first = name.slice(0, Math.max(1, name.length - 1)).join(' ');
-  this.name.last = name.slice(Math.max(1, name.length - 1)).join(' ');
-});
-
 // Plugins
 schema.plugin(plugin.findOrCreate);
 schema.plugin(plugin.timestamp);
-
-// Bcrypt middleware
-schema.pre('save', function (next) {
-  var SALT_WORK_FACTOR = 10,
-      user = this;
-
-  if (!user.isModified('auth.local.password')) {
-    return next();
-  }
-
-  bcrypt.genSalt(SALT_WORK_FACTOR, function (err, salt) {
-    if (err) { return next(err); }
-
-    bcrypt.hash(user.auth.local.password, salt, function (err, hash) {
-      if (err) { return next(err); }
-      user.auth.local.password = hash;
-      next();
-    });
-  });
-});
 
 // Promote user to admin if admin does not yet exist.
 schema.pre('save', function (next) {

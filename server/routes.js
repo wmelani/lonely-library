@@ -30,12 +30,6 @@ exports.register = function (app, restify) {
   s.get('/task', c.home.task);
 
   // Auth
-  s.get('/auth/facebook', c.auth.facebook);
-  s.get('/auth/facebook/callback', c.auth.facebookCallback);
-  s.get('/auth/google', c.auth.google);
-  s.get('/auth/google/callback', c.auth.googleCallback);
-  s.get('/auth/twitter', c.auth.twitter);
-  s.get('/auth/twitter/callback', c.auth.twitterCallback);
   s.get('/auth/spotify', c.auth.spotify);
   s.get('/auth/spotify/callback', c.auth.spotifyCallback);
   // Status
