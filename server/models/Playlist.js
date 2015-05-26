@@ -7,42 +7,41 @@
 var ultimate = require('ultimate');
 
 var mongoose = ultimate.lib.mongoose,
-    plugin = ultimate.db.mongoose.plugin,
-    type = ultimate.db.mongoose.type;
+    plugin = ultimate.db.mongoose.plugin;
 
 var app = require('../app');
 
 // Schema
 var schema = new mongoose.Schema({
-    "collaborative": Boolean,
-    "external_urls": {
-        "spotify": String
+    'collaborative': Boolean,
+    'external_urls': {
+        'spotify': String
     },
-    "href": String,
-    "id": String,
-    "images": [{
-        "height": Number,
-        "url": String,
-        "width": Number
+    'href': String,
+    'id': String,
+    'images': [{
+        'height': Number,
+        'url': String,
+        'width': Number
     }],
-    "name": String,
-    "owner": {
-        "external_urls": {
-            "spotify": String
+    'name': String,
+    'owner': {
+        'external_urls': {
+            'spotify': String
         },
-        "href": String,
-        "id": String,
-        "type": String,
-        "uri": String
+        'href': String,
+        'id': String,
+        'type': String,
+        'uri': String
     },
-    "public": Boolean,
-    "snapshot_id": String,
-    "tracks": {
-        "href": String,
-        "total": Number
+    'public': Boolean,
+    'snapshot_id': String,
+    'tracks': {
+        'href': String,
+        'total': Number
     },
-    "type": String,
-    "uri": String
+    'type': String,
+    'uri': String
 });
 
 // Restify
