@@ -9,7 +9,7 @@ var app = require('../../app');
 var spotify = app.services.spotifyApi;
 var spotifyPageUtils = app.services.spotifyPageUtils;
 
-function populatePlaylistsLIST(req) {
+function populatePlaylistsLIST(req,cb) {
   spotify.setAccessToken(req.user._doc.auth.spotify.token);
   var options = {
     limit : 50,
@@ -19,10 +19,13 @@ function populatePlaylistsLIST(req) {
     handlePlaylist,
     options,
     spotify.getUserPlaylists,
-    [req.user._doc.auth.spotify.id,options]).then(function(){});
+    [req.user._doc.auth.spotify.id,options]).then(function(){
+      cb(null,{done : true});
+    });
+
 }
 
-function populateSavedTracksLIST(req) {
+function populateSavedTracksLIST(req,cb) {
   spotify.setAccessToken(req.user._doc.auth.spotify.token);
   var options = {
     limit : 50,
@@ -32,7 +35,9 @@ function populateSavedTracksLIST(req) {
     handleSavedTrack,
     options,
     spotify.getMySavedTracks,
-    [options]).then(function(){});
+    [options]).then(function(){
+      cb(null,{done : true});
+    });
 }
 
 function getPlaylistTracks(id,playlistId){
@@ -47,17 +52,17 @@ function getPlaylistTracks(id,playlistId){
     [id,playlistId,options]).then(function(){});
 }
 
-function getSavedTracksLIST(req,res){
+function getSavedTracksLIST(req,cb){
   spotify.setAccessToken(req.user._doc.auth.spotify.token);
   app.models.Track.findSavedTracks(function(data){
-    res.send(data);
+    cb(null,data);
   });
 }
 
-function getSavedTracksNotInPlaylistLIST(req,res){
+function getSavedTracksNotInPlaylistLIST(req,cb){
   spotify.setAccessToken(req.user._doc.auth.spotify.token);
   app.models.Track.findSavedTracksNotInPlaylist(function(data){
-    res.send(data);
+   cb(null,data);
   });
 }
 
