@@ -55,6 +55,7 @@ var spotifyApi = new SpotifyWebApi({
 app.services = {
   spotifyApi : spotifyApi
 };
+app.services.spotifyPageUtils = require(app.dir + '/controllers/api/spotifyPageUtils');
 
 app.c = app.controllers = ultimate.require(app.dir + '/controllers');
 

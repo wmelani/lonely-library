@@ -18,7 +18,10 @@ exports.register = function (app, restify) {
   //     csrf = ultimate.server.controller.csrf;
 
   // API
-  restify.any('/api/playlists', c.api.spotify.playlists, ['list']);
+  restify.any('/api/loadPlaylists', c.api.spotify.populatePlaylists, ['list']);
+  restify.any('/api/loadSavedTracks', c.api.spotify.populateSavedTracks, ['list']);
+  restify.any('/api/lonelyTracks', c.api.spotify.getSavedTracksNotInPlaylist, ['list']);
+  restify.any('/api/savedTracks', c.api.spotify.getSavedTracks, ['list']);
   restify.any('/api/logout', c.api.auth.logout, ['post']);
 
   s.get(/^\/api(?:[\/#?].*)?$/, error404);

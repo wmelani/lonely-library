@@ -60,7 +60,8 @@ schema = new mongoose.Schema({
   preview_url: String,
   track_number: Number,
   type: String,
-  uri: String
+  uri: String,
+  isSaved: Boolean
 });
 /* jshint ignore:end */
 // Restify
@@ -83,7 +84,6 @@ schema.restify = {
 };
 
 schema.statics.findOrCreateTrack = function (Track, cb) {
-  console.log(Track);
   app.models.Track.findOneAndUpdate({
     id: Track.id
   }, Track, function (err, tr) {
@@ -99,7 +99,42 @@ schema.statics.findOrCreateTrack = function (Track, cb) {
   });
 };
 
+schema.statics.findOrCreateTrackAsSaved = function (Track, cb) {
+  Track.isSaved = true;
+  app.models.Track.findOneAndUpdate({
+    id: Track.id
+  }, Track, function (err, tr) {
+    if (err) {
+      return cb(err);
+    }
+    if (tr) {
+      // Updated existing.
+      return cb(null, tr);
+    } else {
+      app.models.Track.create(Track, cb);
+    }
+  });
+};
 
+schema.statics.findSavedTracks = function (cb){
+  app.models.Track.find({isSaved : true},function(err,trs){
+    if (err){
+      return cb(err);
+    }else{
+      cb(trs);
+    }
+  });
+};
+
+schema.statics.findSavedTracksNotInPlaylist = function (cb){
+  app.models.Track.find({ isSaved: { $ne: true } },function(err,trs){
+    if (err){
+      return cb(err);
+    }else{
+      cb(trs);
+    }
+  });
+};
 // Plugins
 schema.plugin(plugin.findOrCreate);
 schema.plugin(plugin.timestamp);

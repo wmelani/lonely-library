@@ -7,19 +7,32 @@
 
 var app = require('../../app');
 var spotify = app.services.spotifyApi;
-var Promise = require('mpromise');
+var spotifyPageUtils = app.services.spotifyPageUtils;
 
-function playlistsLIST(req) {
+function populatePlaylistsLIST(req) {
   spotify.setAccessToken(req.user._doc.auth.spotify.token);
   var options = {
     limit : 50,
     offset : 0
   };
-  doPromiseLoop(
+  spotifyPageUtils.doPromiseLoop(
     handlePlaylist,
     options,
     spotify.getUserPlaylists,
     [req.user._doc.auth.spotify.id,options]).then(function(){});
+}
+
+function populateSavedTracksLIST(req) {
+  spotify.setAccessToken(req.user._doc.auth.spotify.token);
+  var options = {
+    limit : 50,
+    offset : 0
+  };
+  spotifyPageUtils.doPromiseLoop(
+    handleSavedTrack,
+    options,
+    spotify.getMySavedTracks,
+    [options]).then(function(){});
 }
 
 function getPlaylistTracks(id,playlistId){
@@ -27,66 +40,44 @@ function getPlaylistTracks(id,playlistId){
     limit : 100,
     offset : 0
   };
-  doPromiseLoop(
+  spotifyPageUtils.doPromiseLoop(
     handleTrack,
     options,
     spotify.getPlaylistTracks,
     [id,playlistId,options]).then(function(){});
 }
 
+function getSavedTracksLIST(req,res){
+  spotify.setAccessToken(req.user._doc.auth.spotify.token);
+  app.models.Track.findSavedTracks(function(data){
+    res.send(data);
+  });
+}
+
+function getSavedTracksNotInPlaylistLIST(req,res){
+  spotify.setAccessToken(req.user._doc.auth.spotify.token);
+  app.models.Track.findSavedTracksNotInPlaylist(function(data){
+    res.send(data);
+  });
+}
+
 function doNothing(){}
 function handleTrack(args,item){
     app.models.Track.findOrCreateTrack(item.track,doNothing);
+}
+function handleSavedTrack(args,item){
+  app.models.Track.findOrCreateTrackAsSaved(item.track,doNothing);
 }
 function handlePlaylist(args, item){
   getPlaylistTracks(args[0],item.id);
   app.models.Playlist.findOrCreatePlaylist(item,doNothing);
 }
 
-var doPromiseLoop = function(perItem,options, func, args){
-  var promise = new Promise();
-  promise.onResolve(function (){
-  });
 
-  var iterateResults = function(data){
-    for(var i = 0; i < data.body.items.length; i++){
-      var item = data.body.items[i];
-      perItem(args,item);
-    }
-  };
-
-  var onFinished = function(){};
-
-  var download = function(dontCare,data){
-
-    iterateResults(data);
-
-    var arr = [];
-    for (var i = 0; i < args.length; i++)
-    {
-      arr.push(args[i]);
-    }
-    arr.push(download);
-    options.offset += data.body.items.length;
-    if (options.offset < data.body.total){
-
-      func.apply(spotify,arr);
-    }
-    else {
-      onFinished();
-    }
-  };
-  var arr = [];
-  for (var i = 0; i < args.length; i++)
-  {
-    arr.push(args[i]);
-  }
-  arr.push(download);
-  func.apply(spotify,arr);
-  return promise;
-
-};
 
 
 // Public API
-exports.playlists = {LIST: playlistsLIST};
+exports.populatePlaylists = {LIST: populatePlaylistsLIST};
+exports.populateSavedTracks = {LIST: populateSavedTracksLIST};
+exports.getSavedTracks = {LIST: getSavedTracksLIST};
+exports.getSavedTracksNotInPlaylist = {LIST: getSavedTracksNotInPlaylistLIST};
